@@ -1,84 +1,74 @@
-import React, { useState } from 'react';
-import { Card, Divider, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Divider } from 'antd';
 import { ToDoItem } from './ToDoItem';
 import { ToDoForm } from './ToDoForm';
-import {IoTrashBinSharp} from "react-icons/io5";
+import {TodoistApi} from "@doist/todoist-api-typescript";
+import 'materialize-css/dist/css/materialize.min.css'
+
 
 export const ToDo = () => {
-  
-  const [todos, setTodos] = useState([
-    {id: 1, title: 'Some ToDo', description: "Something like description   Added at: " + GetTime(), checked: false},
-    {id: 2, title: 'Another one ToDO', description: "Description without no sence in it   Added at: " + GetTime(), checked: false}
-  ]);
+  const api = new TodoistApi('4114d16853c84959cd4b40a72fa47f301281415d')
+  const [todos, setTodos] = useState([])
+
+  useEffect(() => {
+      api.getTasks()
+          .then(todos => setTodos(todos))
+  });
   const [idCount, setIdCount] = useState(10);
 
   const renderTodoItems = (todos) => {
     return (
-      <ul className="todo-list">
-
-        Unchecked ToDo: {(todos.filter(todo => todo.checked === false)).length}_ _ _
-
-        <Button onClick = {removeAllCheckedItems} type="primary">Delete selected<IoTrashBinSharp/></Button>
+<ul className="todo-list">
+        Unchecked ToDOs :{countDoneItems()}
         { todos.map(todo => <ToDoItem 
             key={todo.id}
             item={todo}
             description = {todo.description}
             onRemove={onRemove} 
             onCheck={onCheck} 
+            onUpdate = {onUpdate}
           />) }
       </ul>
+
     )
   }
-
-  const onRemove = (id) => {
+  const onUpdate = (id) => {
     const index = todos.findIndex(todo => todo.id === id);
-
-    if (index !== -1) {
-      todos.splice(index, 1);
-      setTodos([...todos]);
-    }
-  }
-  const removeAllCheckedItems = () => {
-    setTodos(todos.filter(item => !item.checked));
-  }
-  const onCheck = (id) => {
-    const index = todos.findIndex(todo => todo.id === id);
-    
     if (index !== -1) {
       const todo = todos[index];
 
-      todo.checked = !todo.checked;
+      todo.onUpdate = true;
       todos.splice(index, 1, todo);
 
       setTodos([...todos]);
+    api.updateTask(id,{content: 'Updated Name'}).then(res=> console.log(res))
+}
+}
+  const onRemove = (id) => {
+       api.deleteTask(id).then(() => console.log('success')).catch(err => console.log(err))
     }
+ 
+  const onCheck = (id) => {
+    api.closeTask(id).then(() => console.log('success')).catch(err => console.log(err))
+}
+  const onSubmit = (title, description) => {
     
+    api.addTask({content: title, description: description}).then(() => console.log('success')).catch(err => console.log(err))
+    
+  } 
+  
+  const countDoneItems = () => {
+    return todos.reduce((count, item) => {
+        if(!item.checked){count++;}
+        return count;
+    }, 0)
   }
 
-  const onSubmit = (title, description) => {
-    const todo = {
-      id: idCount,
-      title,
-      description,
-      checked: false
-    };
-
-    setTodos([...todos, todo]);
-    setIdCount(idCount + 1);
-  } 
-
   return (
-    <Card title={'My ToDos'} className="todo-card">
+    <Card title={'My todos'} className="todo-card">
       <ToDoForm onSubmit={onSubmit} />
       <Divider />
       { renderTodoItems(todos) }
     </Card>
   );
-
-  function GetTime()
-  {
-    var today = new Date();
-    var result = today.getDate() + '.' + (today.getMonth() + 1) + '.' + today.getFullYear() + " at " + today.getHours() + ':' + today.getMinutes();
-     return result;
-  }
 }

@@ -1,12 +1,9 @@
 import React from 'react';
-import { Button, Checkbox} from 'antd';
-import Collapsible from 'react-collapsible';
 import './style.css'
-import {FaTrash} from "react-icons/fa";
-import Time from 'react-time-format'
+import 'materialize-css/dist/css/materialize.min.css'
 
 export const ToDoItem = (props) => {
-  const { item, onCheck, onRemove } = props;
+const { item, onCheck, onRemove, onUpdate } = props;
   const onRemoveItem = (e) => {
     e.preventDefault();
 
@@ -20,52 +17,23 @@ export const ToDoItem = (props) => {
       onCheck(item.id);
     }
   }
-  if(item.checked!==true){
-  return (
-    <li className="todo-item" key={item.id}>
-      <Collapsible trigger={item.title}>
-      <p>
-        {"\nDescription: " + item.description }
-      </p>
-    </Collapsible> 
-    <li>
-      <Checkbox className = "checkBox"
-          checked={item.checked}
-          onChange={onCheckItem}
-        ></Checkbox>
-        <Button danger onClick={onRemoveItem}><FaTrash/></Button>
-      </li>
-    </li>
-  )}
-  else
-  {
-    return (
-      <li  style={{
-        backgroundColor: '#cfe8ba',
-         }} className="todo-item" key={item.id}>
-       
-      
-        <Collapsible  triggerStyle = {{
-          textDecoration: 'line-through',
-          textAlign: 'left'
-         }} trigger={item.title}>
-        <p style={{
-          textDecoration: 'line-through',
-          textAlign: "center"
-         }} >
-          {"\nDescription: " + item.description+ "    "}<Time value={Date.now()} style={{color:'red'}} />
-        </p>
-      </Collapsible> 
-      <li>
-      <Checkbox className = "checkBox"
-          checked={item.checked}
-          onChange={onCheckItem}
-        ></Checkbox>
-        <Button danger onClick={onRemoveItem}><FaTrash/></Button>
-      
-      </li>
-      
-      </li>
-    )
+  const onUpdateItem = () =>{
+
+    onUpdate(item.id);
   }
+  
+  return ( <li className="todo-item" key={item.id}>
+      <p>
+      <label>
+        <input type="checkbox" class="filled-in" checked={item.checked}
+                onChange={onCheckItem}/>
+        <span>{item.content}    Description:  {item.description}</span>
+      </label>
+    </p>
+    <p class="z-depth-2">
+    <a class="waves-effect till btn" onClick={onUpdateItem}><i class="material-icons left">update</i>Update</a>
+    <a class="waves-effect red btn" onClick={onRemoveItem}><i class="material-icons left">remove</i>Remove</a></p>
+  
+</li>
+    )
 }
